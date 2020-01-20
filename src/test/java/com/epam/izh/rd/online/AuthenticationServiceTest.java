@@ -25,14 +25,14 @@ public class AuthenticationServiceTest {
 
     @Test
     @DisplayName("Тест метода IAuthenticationService.login(User user)")
-    void testRegisterCase1() {
+    void testRegisterCase1() throws ClassNotFoundException {
         assertion.assertThrowsWithClassName("UserNotFoundException", () -> authenticationService.login(getUser()),
                 "Пользователь с таким логином не найден");
     }
 
     @Test
     @DisplayName("Тест метода IAuthenticationService.login(User user)")
-    void testRegisterCase2() {
+    void testRegisterCase2() throws ClassNotFoundException {
         User user = getUser();
         userRepository.save(user);
 
