@@ -1,10 +1,15 @@
 package com.epam.izh.rd.online.service;
 
 import com.epam.izh.rd.online.entity.User;
+import com.epam.izh.rd.online.exception.NotAccessException;
+import com.epam.izh.rd.online.exception.SimplePasswordException;
+import com.epam.izh.rd.online.exception.UserAlreadyRegisteredException;
 import com.epam.izh.rd.online.repository.IUserRepository;
 import com.epam.izh.rd.online.repository.UserRepository;
 
 public class UserService implements IUserService {
+
+    private final static String EMPTY_FIELDS_MESSAGE = "Ошибка в заполнении полей";
 
     private IUserRepository userRepository;
 
@@ -30,14 +35,30 @@ public class UserService implements IUserService {
      * @param user - даныне регистрирующегося пользователя
      */
     @Override
-    public User register(User user) {
+    public User register(User user) throws UserAlreadyRegisteredException, SimplePasswordException {
 
         //
         // Здесь необходимо реализовать перечисленные выше проверки
         //
 
+        if (!checkUserFieldsNotEmpty(user)) {
+            throw new IllegalArgumentException(EMPTY_FIELDS_MESSAGE);
+        } else if (userRepository.findByLogin(user.getLogin()) != null) {
+            throw new UserAlreadyRegisteredException(UserAlreadyRegisteredException.USER_ALREADY_REGISTERED_MESSAGE + user.getLogin());
+        } else if (user.getPassword().matches("[0-9]{1,}")) {
+            throw new SimplePasswordException(SimplePasswordException.SIMPLE_PASSWORD_MESSAGE);
+        }
+
         // Если все проверки успешно пройдены, сохраняем пользователя в базу
         return userRepository.save(user);
+    }
+
+    @Override
+    public boolean checkUserFieldsNotEmpty(User user) {
+        return (user.getLogin() != null
+                && user.getPassword() != null
+                && !user.getLogin().isEmpty()
+                && !user.getPassword().isEmpty());
     }
 
     /**
@@ -58,13 +79,15 @@ public class UserService implements IUserService {
      *
      * @param login
      */
-    public void delete(String login) {
+    public void delete(String login) throws NotAccessException {
 
         // Здесь необходимо сделать доработку метод
 
+        try {
             userRepository.deleteByLogin(login);
-
-        // Здесь необходимо сделать доработку метода
+        } catch (UnsupportedOperationException e) {
+            throw new NotAccessException(NotAccessException.NOT_ACCESS_MESSAGE);
+        }
 
     }
 
